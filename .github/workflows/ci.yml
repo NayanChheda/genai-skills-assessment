@@ -13,9 +13,14 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Activate existing virtual environment
+    - name: Activate virtual environment (Windows PowerShell)
       run: |
-        source .venv\Scripts\activate || echo "Virtual environment not found, using system Python"
+        if (Test-Path .venv/Scripts/activate) {
+          .\.venv\Scripts\activate
+          Write-Host "✅ Virtual environment activated"
+        } else {
+          Write-Host "ℹ️ Virtual environment not found, using system Python"
+        }
         python --version
     
     - name: Install dependencies
