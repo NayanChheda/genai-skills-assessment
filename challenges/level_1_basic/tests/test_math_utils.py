@@ -1,4 +1,3 @@
-import pytest
 from basics.math_utils import add
 
 
