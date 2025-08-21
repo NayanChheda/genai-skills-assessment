@@ -13,11 +13,17 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Check Python installation
+    - name: Activate virtual environment
+      shell: pwsh
       run: |
-        Write-Host "Python version:"
+        if (Test-Path ".venv\Scripts\Activate.ps1") {
+            Write-Host "Activating virtual environment..."
+            .venv\Scripts\Activate.ps1
+            Write-Host "Virtual environment activated"
+        } else {
+            Write-Host "Virtual environment not found, using system Python"
+        }
         python --version
-        Write-Host "Pip version:"
         pip --version
     
     - name: Install dependencies
