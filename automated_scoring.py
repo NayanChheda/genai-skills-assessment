@@ -18,30 +18,35 @@ def run_command(cmd: str, cwd: str = ".") -> Tuple[int, str, str]:
         return -1, "", str(e)
 
 
+# automated_scoring.py (update calculate_coverage_score function)
 def calculate_coverage_score() -> Tuple[float, str]:
-    """Calculate test coverage score - modified for assessment context."""
-    return_code, stdout, stderr = run_command(
-        "pytest --cov=src --cov-report=term-missing"
-    )
+    """Calculate test coverage score - handle pytest failures gracefully."""
+    try:
+        return_code, stdout, stderr = run_command(
+            "pytest --cov=src --cov-report=term-missing"
+        )
 
-    # In assessment context, tests might fail because implementations are missing
-    # This is expected, so we should still try to parse coverage
+        # Even if pytest fails, try to parse coverage from the output
+        lines = stdout.split("\n")
+        coverage_line = [line for line in lines if "TOTAL" in line]
 
-    # Parse coverage percentage from output
-    lines = stdout.split("\n")
-    coverage_line = [line for line in lines if "TOTAL" in line]
+        if coverage_line:
+            parts = coverage_line[0].split()
+            try:
+                coverage_percent = float(parts[-1].replace("%", ""))
+                normalized_score = max(0.0, coverage_percent / 100)
+                return normalized_score, f"Coverage: {coverage_percent}%"
+            except (ValueError, IndexError):
+                pass
 
-    if coverage_line:
-        parts = coverage_line[0].split()
-        try:
-            coverage_percent = float(parts[-1].replace("%", ""))
-            # For assessment, we accept 0% coverage as valid (no implementations yet)
-            normalized_score = max(0.0, coverage_percent / 100)
-            return normalized_score, f"Coverage: {coverage_percent}%"
-        except (ValueError, IndexError):
-            return 0.0, "Could not parse coverage"
+        # If we can't parse coverage, return 0 with appropriate message
+        if return_code != 0:
+            return 0.0, "Tests failed (expected - implementations missing)"
+        else:
+            return 0.0, "No coverage data available"
 
-    return 0.0, "No coverage data available"
+    except Exception:
+        return 0.0, "Coverage check failed"
 
 
 def calculate_style_score() -> Tuple[float, str]:
