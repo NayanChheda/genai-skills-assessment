@@ -22,7 +22,7 @@ namespace_packages = true
 [[tool.mypy.overrides]]
 module = [
     "src.*",
-    "challenges.*",
+    "challenges.*",  # Add this line
     "tests.*"
 ]
 

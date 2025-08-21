@@ -1,0 +1,20 @@
+[
+  {
+    "id": "doc_001",
+    "title": "Introduction to Machine Learning",
+    "content": "Machine learning is a subset of artificial intelligence that focuses on building systems that learn from data. These systems can improve their performance over time without being explicitly programmed.",
+    "category": "education"
+  },
+  {
+    "id": "doc_002", 
+    "title": "Python Programming Basics",
+    "content": "Python is a high-level programming language known for its readability and versatility. It supports multiple programming paradigms including object-oriented, imperative, and functional programming.",
+    "category": "programming"
+  },
+  {
+    "id": "doc_003",
+    "title": "Data Visualization Techniques",
+    "content": "Effective data visualization helps in understanding complex datasets by representing data graphically. Common techniques include bar charts, scatter plots, and heatmaps.",
+    "category": "data_science"
+  }
+]
