@@ -13,15 +13,12 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Activate virtual environment (Windows PowerShell)
+    - name: Check Python installation
       run: |
-        if (Test-Path .venv/Scripts/activate) {
-          .\.venv\Scripts\activate
-          Write-Host "✅ Virtual environment activated"
-        } else {
-          Write-Host "ℹ️ Virtual environment not found, using system Python"
-        }
+        Write-Host "Python version:"
         python --version
+        Write-Host "Pip version:"
+        pip --version
     
     - name: Install dependencies
       run: |
