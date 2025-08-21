@@ -13,22 +13,20 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Activate virtual environment
-      shell: powershell
+    - name: Set up Python
       run: |
-        if (Test-Path ".venv\Scripts\Activate.ps1") {
-            Write-Host "Activating virtual environment..."
-            .venv\Scripts\Activate.ps1
-            Write-Host "Virtual environment activated"
-        } else {
-            Write-Host "Virtual environment not found, using system Python"
-        }
+        python -m venv .ci-venv
+        .ci-venv/Scripts/activate
+        python -m pip install --upgrade pip
         python --version
         pip --version
+      shell: powershell
     
     - name: Install dependencies
       run: |
+        .ci-venv/Scripts/activate
         pip install -r requirements.txt
+      shell: powershell
     - name: Lint with flake8
       run: |
         flake8 src/ challenges/ --count --max-complexity=10 --statistics
