@@ -1,4 +1,3 @@
-# automated_scoring.py
 import json
 import subprocess
 import sys

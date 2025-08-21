@@ -1,5 +1,3 @@
-# challenges/level_1_basic/tests/test_math_utils.py
-
 from src.basics.math_utils import add, factorial, fibonacci
 
 

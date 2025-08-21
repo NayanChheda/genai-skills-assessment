@@ -1,4 +1,3 @@
-# challenges/level_1_basic/validate_git_tasks.py
 import subprocess
 import re
 from pathlib import Path

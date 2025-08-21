@@ -1,5 +1,3 @@
-# src/basics/list_utils.py
-
 from typing import Any, List
 
 __all__: list[str] = ["flatten_list", "remove_duplicates"]

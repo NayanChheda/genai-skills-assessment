@@ -1,4 +1,3 @@
-# challenges/level_1_basic/tests/test_string_utils.py
 from src.basics.string_utils import reverse_string, is_palindrome
 
 

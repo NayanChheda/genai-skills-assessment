@@ -1,4 +1,3 @@
-# challenges/level_2_intermediate/rag_chatbot/tests/test_document_processor.py
 """
 Tests for document processor module.
 Candidates should implement these tests.

@@ -1,5 +1,3 @@
-# challenges/level_1_basic/tests/test_list_utils.py
-
 from src.basics.list_utils import flatten_list, remove_duplicates
 
 

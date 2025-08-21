@@ -1,5 +1,3 @@
-# src/basics/math_utils.py
-
 from typing import List
 
 __all__: list[str] = ["add", "factorial", "fibonacci"]

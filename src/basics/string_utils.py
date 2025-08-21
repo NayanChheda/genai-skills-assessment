@@ -1,5 +1,3 @@
-# src/basics/string_utils.py
-
 __all__: list[str] = ["reverse_string", "is_palindrome"]
 
 
