@@ -20,19 +20,21 @@ def run_command(cmd: str, cwd: str = ".") -> Tuple[int, str, str]:
 
 def calculate_coverage_score() -> Tuple[float, str]:
     """Calculate test coverage score - modified for assessment context."""
-    return_code, stdout, stderr = run_command("pytest --cov=src --cov-report=term-missing")
+    return_code, stdout, stderr = run_command(
+        "pytest --cov=src --cov-report=term-missing"
+    )
 
     # In assessment context, tests might fail because implementations are missing
     # This is expected, so we should still try to parse coverage
 
     # Parse coverage percentage from output
-    lines = stdout.split('\n')
-    coverage_line = [line for line in lines if 'TOTAL' in line]
+    lines = stdout.split("\n")
+    coverage_line = [line for line in lines if "TOTAL" in line]
 
     if coverage_line:
         parts = coverage_line[0].split()
         try:
-            coverage_percent = float(parts[-1].replace('%', ''))
+            coverage_percent = float(parts[-1].replace("%", ""))
             # For assessment, we accept 0% coverage as valid (no implementations yet)
             normalized_score = max(0.0, coverage_percent / 100)
             return normalized_score, f"Coverage: {coverage_percent}%"
@@ -63,7 +65,7 @@ def calculate_type_check_score() -> Tuple[float, str]:
         return 1.0, "No type issues"
 
     # Count type errors from output
-    error_count = len([line for line in stdout.split('\n') if 'error:' in line])
+    error_count = len([line for line in stdout.split("\n") if "error:" in line])
     score = max(0.0, 1 - (error_count / 50))
     return score, f"Type errors: {error_count}"
 
@@ -76,7 +78,9 @@ def calculate_formatting_score() -> Tuple[float, str]:
         return 1.0, "Perfect formatting"
 
     # Count files that need reformatting
-    files_count = len([line for line in stdout.split('\n') if 'would be reformatted' in line])
+    files_count = len(
+        [line for line in stdout.split("\n") if "would be reformatted" in line]
+    )
     score = max(0.0, 1 - (files_count / 10))
     return score, f"Files needing formatting: {files_count}"
 
@@ -100,8 +104,8 @@ def calculate_git_score() -> Tuple[float, str]:
             # Let's get more detailed info by running specific checks
 
             # Check if at least we have some commits
-            return_code, stdout, stderr = run_command('git log --oneline -n 5')
-            commits = [line for line in stdout.split('\n') if line.strip()]
+            return_code, stdout, stderr = run_command("git log --oneline -n 5")
+            commits = [line for line in stdout.split("\n") if line.strip()]
 
             if commits:
                 # Basic Git repository with some activity
@@ -113,7 +117,7 @@ def calculate_git_score() -> Tuple[float, str]:
 
     except Exception:
         # Fallback: check if it's a Git repo at all
-        return_code, stdout, stderr = run_command('git status')
+        return_code, stdout, stderr = run_command("git status")
         if return_code == 0:
             return 0.7, "Git repository detected (basic assessment)"
         else:
@@ -123,6 +127,7 @@ def calculate_git_score() -> Tuple[float, str]:
 # Define type for scoring results
 class ScoreResults(TypedDict):
     """Type definition for scoring results."""
+
     timestamp: str
     context: str
     note: str

@@ -9,40 +9,46 @@ def analyze_commit_messages() -> Tuple[float, str]:
     """Analyze commit messages for quality using relevant metrics only."""
     result = subprocess.run(
         'git log --oneline --format="%h|%s" -n 20',
-        shell=True, capture_output=True, text=True,
+        shell=True,
+        capture_output=True,
+        text=True,
     )
 
     if not result.stdout.strip():
         return 0.0, "No commits found"
 
     commits: List[Dict[str, Any]] = []
-    for line in result.stdout.strip().split('\n'):
-        if '|' in line:
-            commit_hash, message = line.split('|', 1)
-            commits.append({
-                'message': message.strip(),
-                'length': len(message.strip()),
-                'has_verb': bool(re.search(
-                    r'^(add|fix|update|remove|refactor|implement|create|docs|test|style)',
-                    message.lower(),
-                )),
-                'is_meaningful': (
-                    len(message.strip()) > 15
-                    and not message.lower().startswith('merge')
-                    and not message.lower().startswith('wip')
-                    and not message.lower().startswith('update')
-                    and not message.lower().startswith('fix')
-                ),
-            })
+    for line in result.stdout.strip().split("\n"):
+        if "|" in line:
+            commit_hash, message = line.split("|", 1)
+            commits.append(
+                {
+                    "message": message.strip(),
+                    "length": len(message.strip()),
+                    "has_verb": bool(
+                        re.search(
+                            r"^(add|fix|update|remove|refactor|implement|create|docs|test|style)",
+                            message.lower(),
+                        )
+                    ),
+                    "is_meaningful": (
+                        len(message.strip()) > 15
+                        and not message.lower().startswith("merge")
+                        and not message.lower().startswith("wip")
+                        and not message.lower().startswith("update")
+                        and not message.lower().startswith("fix")
+                    ),
+                }
+            )
 
     total_commits = len(commits)
     if total_commits == 0:
         return 0.0, "No commits to analyze"
 
     # Calculate only relevant quality metrics
-    meaningful_commits = sum(1 for c in commits if c['is_meaningful'])
-    verb_commits = sum(1 for c in commits if c['has_verb'])
-    avg_length = sum(c['length'] for c in commits) / total_commits
+    meaningful_commits = sum(1 for c in commits if c["is_meaningful"])
+    verb_commits = sum(1 for c in commits if c["has_verb"])
+    avg_length = sum(c["length"] for c in commits) / total_commits
 
     # Weighted score with ONLY relevant metrics
     score = (
@@ -62,21 +68,22 @@ def check_branch_structure() -> Tuple[float, str]:
     """Check if branching structure follows good practices - simplified."""
     result = subprocess.run(
         "git branch --format='%(refname:short)'",
-        shell=True, capture_output=True, text=True,
+        shell=True,
+        capture_output=True,
+        text=True,
     )
 
-    branches = [b.strip() for b in result.stdout.split('\n') if b.strip()]
+    branches = [b.strip() for b in result.stdout.split("\n") if b.strip()]
 
     if not branches:
         return 0.0, "No branches found"
 
     # Check for main/master branch
-    has_main_branch = any(b in ['main', 'master'] for b in branches)
+    has_main_branch = any(b in ["main", "master"] for b in branches)
 
     # Check for feature/development branches (not just main)
     has_feature_branches = len(branches) > 1 or any(
-        b for b in branches
-        if b not in ['main', 'master'] and not b.startswith('HEAD')
+        b for b in branches if b not in ["main", "master"] and not b.startswith("HEAD")
     )
 
     # Scoring: 50% for having main branch, 50% for having other branches
@@ -95,10 +102,14 @@ def check_recent_activity() -> Tuple[float, str]:
     """Check for reasonable commit activity patterns."""
     result = subprocess.run(
         'git log --oneline --since="2 weeks ago"',
-        shell=True, capture_output=True, text=True,
+        shell=True,
+        capture_output=True,
+        text=True,
     )
 
-    recent_commits = [line for line in result.stdout.strip().split('\n') if line.strip()]
+    recent_commits = [
+        line for line in result.stdout.strip().split("\n") if line.strip()
+    ]
     commit_count = len(recent_commits)
 
     # Score based on having some recent activity (1-10+ commits in 2 weeks)
@@ -127,11 +138,7 @@ def main() -> bool:
         activity_score, activity_details = check_recent_activity()
 
         # Weighted overall score
-        overall_score = (
-            commit_score * 0.6
-            + branch_score * 0.3
-            + activity_score * 0.1
-        )
+        overall_score = commit_score * 0.6 + branch_score * 0.3 + activity_score * 0.1
 
         # Display detailed results
         print(f"\n📊 Commit Message Quality: {commit_score:.0%}")
