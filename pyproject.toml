@@ -12,11 +12,19 @@ extend-ignore = ["E203","W503"]
 exclude = [".venv",".git","__pycache__",".mypy_cache"]
 
 [tool.mypy]
-python_version = "3.11"
-strict = false
-ignore_missing_imports = true
+python_version = "3.9"
 warn_return_any = true
 warn_unused_configs = true
+disallow_untyped_defs = true
+explicit_package_bases = true
+namespace_packages = true
+
+[[tool.mypy.overrides]]
+module = [
+    "src.*",
+    "challenges.*",
+    "tests.*"
+]
 
 [tool.pytest.ini_options]
 testpaths = ["challenges/level_1_basic/tests"]
