@@ -65,5 +65,6 @@ jobs:
     - name: Run automated scoring
       run: |
         .\.ci-venv\Scripts\activate.ps1
+        $OutputEncoding = [System.Text.Encoding]::UTF8
         python automated_scoring.py --assessment-mode
       shell: powershell

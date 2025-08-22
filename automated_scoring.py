@@ -1,3 +1,4 @@
+# automated_scoring.py
 import json
 import subprocess
 import sys
@@ -6,18 +7,35 @@ from pathlib import Path
 from typing import Tuple, TypedDict
 
 
+def setup_encoding() -> None:
+    """Minimal encoding setup that won't cause MyPy errors."""
+    try:
+        # Just set the environment variable for subprocesses
+        import os
+
+        os.environ["PYTHONIOENCODING"] = "utf-8"
+    except Exception:
+        pass
+
+
+# And in run_command, ensure UTF-8 encoding:
 def run_command(cmd: str, cwd: str = ".") -> Tuple[int, str, str]:
     """Run a command and return result."""
     try:
         result = subprocess.run(
-            cmd, shell=True, capture_output=True, text=True, cwd=cwd
+            cmd,
+            shell=True,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",  # Add this
+            errors="replace",  # And this
+            cwd=cwd,
         )
         return result.returncode, result.stdout, result.stderr
     except Exception as e:
         return -1, "", str(e)
 
 
-# automated_scoring.py (update calculate_coverage_score function)
 def calculate_coverage_score() -> Tuple[float, str]:
     """Calculate test coverage score - handle pytest failures gracefully."""
     try:
@@ -105,8 +123,6 @@ def calculate_git_score() -> Tuple[float, str]:
             return 0.9, "Excellent Git practices"
         elif return_code == 1:
             # Git assessment failed or needs improvement
-            # Let's get more detailed info by running specific checks
-
             # Check if at least we have some commits
             return_code, stdout, stderr = run_command("git log --oneline -n 5")
             commits = [line for line in stdout.split("\n") if line.strip()]
@@ -128,7 +144,6 @@ def calculate_git_score() -> Tuple[float, str]:
             return 0.0, "Not a valid Git repository"
 
 
-# Define type for scoring results
 class ScoreResults(TypedDict):
     """Type definition for scoring results."""
 
@@ -141,6 +156,9 @@ class ScoreResults(TypedDict):
 
 def main() -> None:
     """Main scoring function - updated for assessment context."""
+    # Set up proper encoding first
+    setup_encoding()
+
     print("Running automated code assessment...")
     print("Note: Low coverage is expected in assessment repositories")
     print("=" * 60)
@@ -153,7 +171,6 @@ def main() -> None:
     git_score, git_msg = calculate_git_score()
 
     # Adjusted weights for assessment context
-    # Less weight on coverage since implementations are missing
     final_score = (
         coverage_score * 0.1
         + style_score * 0.3
@@ -185,10 +202,10 @@ def main() -> None:
     }
 
     # Save results to file
-    with open("scoring_results.json", "w") as f:
+    with open("scoring_results.json", "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2)
 
-    # Print results
+    # Print results - using ASCII characters for Windows compatibility
     print("\n" + "=" * 60)
     print("ASSESSMENT REPOSITORY - CODE QUALITY RESULTS")
     print("=" * 60)
@@ -202,10 +219,10 @@ def main() -> None:
 
     # More lenient threshold for assessment templates
     if final_score < 0.6:
-        print("⚠️  Score below recommended threshold (60%) - review recommended")
+        print("Warning: Score below recommended threshold (60%) - review recommended")
         sys.exit(1)
     else:
-        print("✅ Repository structure meets assessment requirements")
+        print("Success: Repository structure meets assessment requirements")
         sys.exit(0)
 
 
