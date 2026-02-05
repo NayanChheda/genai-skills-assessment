@@ -1,63 +1,87 @@
-# GenAI Skills Assessment (Template)
+# GenAI Skills Assessment
 
-An open-source template to assess candidates and groups on:
-- **Git collaboration** (branching, merging, conflict resolution, workflows)
-- **Python coding standards** (style, tests, docs, refactoring)
-- **Generative AI** development (RAG, prompts, fine-tuning, multi-agent, optimization)
+[![CI Pipeline](https://github.com/NayanChheda/genai-skills-assessment/actions/workflows/ci.yml/badge.svg)](https://github.com/NayanChheda/genai-skills-assessment/actions/workflows/ci.yml)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-> This repo is designed as a **template**—fork/clone and adapt it to your needs. All tools are free & open-source.
+An open-source assessment platform to evaluate candidates on **Python**, **Git**, and **Generative AI** skills.
 
 ## Quick Start
 
 ```bash
-# 1) Create & activate a virtual environment
-python -m venv .venv
-# Linux/macOS
-source .venv/bin/activate
-# Windows PowerShell
-# .venv\Scripts\Activate.ps1
+# Clone and setup
+git clone https://github.com/NayanChheda/genai-skills-assessment.git
+cd genai-skills-assessment
+python -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev]"
 
-# 2) Install dev tools
-pip install -r requirements.txt
-
-# 3) Run quality checks
-black --check .
-flake8 .
-mypy .
-pytest -q
+# Run checks
+pytest -v && python automated_scoring.py
 ```
 
-## Repository Structure
+## Assessment Areas
+
+| Level | Focus | Folder |
+|-------|-------|--------|
+| Basic | Python fundamentals, Git basics | `challenges/level_1_basic/` |
+| Intermediate | RAG pipelines, prompts, vector DBs | `challenges/level_2_intermediate/` |
+
+## Project Structure
 
 ```
-genai-skills-assessment/
-├── challenges/
-│   └── level_1_basic/
-│       ├── git_basics.md
-│       ├── python_fundamentals.md
-│       └── tests/
-├── docs/
-│   ├── README.md
-│   └── IMPLEMENTATION_PLAN.md
-├── .github/
-│   ├── workflows/
-│   │   └── ci.yml
-│   └── ISSUE_TEMPLATE/
-│       ├── bug_report.md
-│       ├── feature_request.md
-│       └── config.yml
-├── .env.example
-├── .gitignore
-├── pyproject.toml
-├── requirements.txt
-└── README.md
+├── challenges/         # Assessment challenges by level
+├── src/               # Core library code
+│   ├── basics/        # Python utility functions
+│   └── scoring/       # Modular scoring engine
+├── tests/             # Centralized test suite
+├── docker/            # Container support
+├── docs/              # Documentation
+└── automated_scoring.py  # CLI for running assessments
 ```
 
-## Docs
+## For Candidates
 
-- Start here: `docs/README.md`
-- Full roadmap/plan: `docs/IMPLEMENTATION_PLAN.md`
+See **[Candidate Guide](docs/CANDIDATE_GUIDE.md)** for setup and workflow.
+
+## For Administrators
+
+### Run Assessment Scoring
+
+```bash
+# Local
+python automated_scoring.py
+
+# Docker
+docker compose -f docker/docker-compose.yml run scoring
+```
+
+### GitHub Actions
+
+- **CI Pipeline**: Runs on every push/PR (lint, test, score)
+- **Scoring Workflow**: Manual trigger for candidate assessment
+
+## Development
+
+```bash
+# Format
+black src/ challenges/
+
+# Lint
+flake8 src/ challenges/
+
+# Type check
+mypy src/ --ignore-missing-imports
+
+# Test
+pytest --cov=src -v
+```
+
+## Documentation
+
+- [Candidate Guide](docs/CANDIDATE_GUIDE.md) - Getting started for candidates
+- [Implementation Plan](docs/IMPLEMENTATION_PLAN.md) - Project roadmap
+- [Contributing](CONTRIBUTING.md) - How to contribute
 
 ## License
 
-Choose one that fits your org (e.g., MIT, Apache‑2.0). Add `LICENSE` later.
+MIT License - See [LICENSE](LICENSE) for details.
