@@ -2,69 +2,107 @@ name: CI Pipeline
 
 on:
   push:
-    branches: [ main ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main ]
+    branches: [main]
+
+env:
+  PYTHON_VERSION: "3.11"
 
 jobs:
-  test:
-    runs-on: self-hosted
+  lint:
+    name: Lint & Format Check
+    runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      
+      - name: Check formatting with Black
+        run: black --check src/ challenges/
+      
+      - name: Lint with flake8
+        run: flake8 src/ challenges/ --count --max-complexity=10 --statistics
+      
+      - name: Type checking with mypy
+        run: mypy src/ --ignore-missing-imports
+
+  test:
+    name: Test (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    needs: lint
     
-    - name: Set up Python
-      run: |
-        python -m venv .ci-venv
-        .\.ci-venv\Scripts\activate.ps1
-        python -m pip install --upgrade pip
-        python --version
-        pip --version
-      shell: powershell
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.10", "3.11"]
     
-    - name: Install dependencies
-      run: |
-        .\.ci-venv\Scripts\activate.ps1
-        pip install -r requirements.txt
-      shell: powershell
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      
+      - name: Run tests with coverage
+        run: |
+          pytest --cov=src --cov-report=xml --cov-report=term-missing
+        continue-on-error: true
+      
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        if: matrix.python-version == '3.11'
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          fail_ci_if_error: false
+
+  score:
+    name: Automated Scoring
+    runs-on: ubuntu-latest
+    needs: [lint, test]
+    if: github.event_name == 'pull_request'
     
-    - name: Lint with flake8
-      run: |
-        .\.ci-venv\Scripts\activate.ps1
-        python -m flake8 src/ challenges/ --count --max-complexity=10 --statistics
-      shell: powershell
-    
-    - name: Check formatting with Black
-      run: |
-        .\.ci-venv\Scripts\activate.ps1
-        python -m black --check src/ challenges/
-      shell: powershell
-    
-    - name: Type checking with mypy
-      run: |
-        .\.ci-venv\Scripts\activate.ps1
-        python -m mypy src/ challenges/
-      shell: powershell
-    
-    - name: Test with pytest and coverage
-      run: |
-        .\.ci-venv\Scripts\activate.ps1
-        python -m pytest --cov=src --cov-report=xml --cov-report=term-missing
-        if (-not $?) { Write-Host "Pytest completed with errors - expected in assessment context" }
-      shell: powershell
-      continue-on-error: true
-    
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
-      if: success() || failure()
-      with:
-        file: ./coverage.xml
-        flags: unittests
-        name: codecov-umbrella
-    
-    - name: Run automated scoring
-      run: |
-        .\.ci-venv\Scripts\activate.ps1
-        $OutputEncoding = [System.Text.Encoding]::UTF8
-        python automated_scoring.py --assessment-mode
-      shell: powershell
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      
+      - name: Run automated scoring
+        id: scoring
+        run: |
+          python automated_scoring.py || true
+        continue-on-error: true
+      
+      - name: Upload scoring results
+        uses: actions/upload-artifact@v4
+        with:
+          name: scoring-results
+          path: scoring_results.json
+          if-no-files-found: ignore

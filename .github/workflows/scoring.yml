@@ -1,0 +1,99 @@
+name: Assessment Scoring
+
+on:
+  workflow_dispatch:
+    inputs:
+      candidate_branch:
+        description: 'Branch to score'
+        required: true
+        default: 'main'
+      post_comment:
+        description: 'Post results as PR comment'
+        required: false
+        default: 'true'
+
+env:
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  score:
+    name: Score Assessment Submission
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.candidate_branch }}
+          fetch-depth: 0  # Full history for git scoring
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      
+      - name: Run code quality checks
+        id: quality
+        run: |
+          echo "## Code Quality Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Black formatting
+          if black --check src/ challenges/ 2>/dev/null; then
+            echo "✅ **Formatting**: Passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Formatting**: Issues found" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Flake8 linting
+          LINT_ISSUES=$(flake8 src/ challenges/ --count --quiet 2>/dev/null | tail -1 || echo "0")
+          if [ "$LINT_ISSUES" = "0" ]; then
+            echo "✅ **Linting**: No issues" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ **Linting**: $LINT_ISSUES issues" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Type checking
+          if mypy src/ --ignore-missing-imports 2>/dev/null; then
+            echo "✅ **Type Checking**: Passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ **Type Checking**: Issues found" >> $GITHUB_STEP_SUMMARY
+          fi
+      
+      - name: Run tests with coverage
+        id: tests
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Test Results" >> $GITHUB_STEP_SUMMARY
+          
+          if pytest --cov=src --cov-report=term-missing -q 2>/dev/null; then
+            echo "✅ **Tests**: Passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ **Tests**: Some failures (expected for incomplete implementations)" >> $GITHUB_STEP_SUMMARY
+          fi
+        continue-on-error: true
+      
+      - name: Run automated scoring
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Overall Score" >> $GITHUB_STEP_SUMMARY
+          python automated_scoring.py || true
+          
+          if [ -f scoring_results.json ]; then
+            SCORE=$(python -c "import json; print(json.load(open('scoring_results.json'))['scores']['overall'])")
+            echo "**Final Score: ${SCORE}%**" >> $GITHUB_STEP_SUMMARY
+          fi
+        continue-on-error: true
+      
+      - name: Upload scoring results
+        uses: actions/upload-artifact@v4
+        with:
+          name: scoring-results-${{ github.event.inputs.candidate_branch }}
+          path: scoring_results.json
+          if-no-files-found: ignore
+          retention-days: 30
