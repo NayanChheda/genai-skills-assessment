@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  # Main assessment runner
+  assessment:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    volumes:
+      - ..:/app:ro
+      - assessment-results:/app/results
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONIOENCODING=utf-8
+    command: pytest -v --cov=src --cov-report=term-missing
+
+  # Run automated scoring
+  scoring:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    volumes:
+      - ..:/app
+    command: python automated_scoring.py --output results/scoring_results.json
+
+  # Interactive development shell
+  dev:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    volumes:
+      - ..:/app
+    stdin_open: true
+    tty: true
+    command: bash
+
+  # Lint and format check
+  lint:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    volumes:
+      - ..:/app:ro
+    command: >
+      sh -c "
+        echo '=== Checking formatting ===' &&
+        black --check src/ challenges/ &&
+        echo '=== Checking linting ===' &&
+        flake8 src/ challenges/ &&
+        echo '=== Checking types ===' &&
+        mypy src/ --ignore-missing-imports
+      "
+
+volumes:
+  assessment-results:

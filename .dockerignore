@@ -1,0 +1,25 @@
+# Ignore files not needed in Docker build
+.git
+.github
+.venv
+.ci-venv
+__pycache__
+*.pyc
+*.pyo
+*.egg-info
+.mypy_cache
+.pytest_cache
+.coverage
+coverage.xml
+htmlcov/
+*.egg
+dist/
+build/
+scoring_results.json
+docs/
+*.md
+!README.md
+.dockerignore
+.gitignore
+.env
+.env.example
