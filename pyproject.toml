@@ -1,15 +1,67 @@
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
+[project]
+name = "genai-skills-assessment"
+version = "1.0.0"
+description = "Open-source template for assessing candidates on Git, Python, and GenAI skills"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.9"
+authors = [
+    {name = "Assessment Team"}
+]
+keywords = ["assessment", "genai", "python", "git", "skills"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+
+dependencies = [
+    # GenAI and NLP libraries
+    "sentence-transformers>=2.2.0",
+    "openai>=1.0.0",
+    "chromadb>=0.4.0",
+    "langchain>=0.0.340",
+    "transformers>=4.30.0",
+    "torch>=2.0.0",
+    "tiktoken>=0.5.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "black>=23.0.0",
+    "flake8>=6.0.0",
+    "mypy>=1.0.0",
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "pip-tools>=7.0.0",
+]
+
+[project.urls]
+Repository = "https://github.com/NayanChheda/genai-skills-assessment"
+Documentation = "https://github.com/NayanChheda/genai-skills-assessment/tree/main/docs"
+
+# Tool configurations
 [tool.black]
 line-length = 88
-target-version = ["py311"]
-
-[tool.flake8]
-max-line-length = 88
-extend-ignore = ["E203","W503"]
-exclude = [".venv",".git","__pycache__",".mypy_cache"]
+target-version = ["py39", "py310", "py311"]
+exclude = '''
+/(
+    \.git
+    | \.venv
+    | __pycache__
+    | \.mypy_cache
+    | build
+    | dist
+)/
+'''
 
 [tool.mypy]
 python_version = "3.9"
@@ -18,15 +70,36 @@ warn_unused_configs = true
 disallow_untyped_defs = true
 explicit_package_bases = true
 namespace_packages = true
+exclude = [
+    "build",
+    "dist",
+    ".venv",
+]
 
 [[tool.mypy.overrides]]
 module = [
     "src.*",
-    "challenges.*",  # Add this line
-    "tests.*"
+    "challenges.*",
+    "tests.*",
 ]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
-testpaths = ["challenges/level_1_basic/tests"]
-pythonpath = ["src"]
-addopts = "-q"
+testpaths = ["tests", "challenges/level_1_basic/tests"]
+pythonpath = ["src", "."]
+addopts = "-v --tb=short"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]
+
+[tool.coverage.run]
+source = ["src"]
+branch = true
+omit = ["*/tests/*", "*/__pycache__/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.:",
+    "raise NotImplementedError",
+]

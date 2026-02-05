@@ -3,13 +3,24 @@ __pycache__/
 *.py[cod]
 *.egg-info/
 .venv/
+.ci-venv/
 .env
 .mypy_cache/
 .pytest_cache/
+*.egg
+dist/
+build/
+
+# Coverage
+.coverage
+coverage.xml
+htmlcov/
 
 # VSCode / IDEs
 .vscode/
 .idea/
+*.swp
+*.swo
 
 # OS
 .DS_Store
@@ -17,3 +28,9 @@ Thumbs.db
 
 # Scoring
 scoring_results.json
+
+# Docker
+.docker/
+
+# Jupyter
+.ipynb_checkpoints/
